@@ -36,6 +36,15 @@ class MailerLiteService
         return $this->makeRequest($closure, true);
     }
 
+    public function createSubscriber($email, $name = '', $country = '')
+    {
+        $closure = function () use ($email, $name, $country) {
+            return $this->client->createSubscriber($email, $name, $country);
+        };
+
+        return $this->makeRequest($closure, false);
+    }
+
     private function makeRequest(\Closure $closure, $multiple = false)
     {
         try {
