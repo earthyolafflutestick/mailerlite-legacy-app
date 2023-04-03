@@ -176,4 +176,15 @@ class MailerLiteServiceTest extends TestCase
         $this->assertEquals($response->subscribeDate, '03-04-2023');
         $this->assertEquals($response->subscribeTime, '22:16:37');
     }
+
+    public function test_delete_subscriber_returns_nothing()
+    {
+        Http::fake(function ($request) {
+            return Http::response('', 200);
+        });
+
+        $response = $this->mailerLite->deleteSubscriber(1);
+
+        $this->assertNull($response);
+    }
 }

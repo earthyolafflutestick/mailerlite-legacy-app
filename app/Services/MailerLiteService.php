@@ -54,6 +54,15 @@ class MailerLiteService
         return $this->makeRequest($closure, false);
     }
 
+    public function deleteSubscriber($id_or_email)
+    {
+        $closure = function () use ($id_or_email) {
+            return $this->client->deleteSubscriber($id_or_email);
+        };
+
+        return $this->makeRequest($closure, false);
+    }
+
     private function makeRequest(\Closure $closure, $multiple = false)
     {
         try {
@@ -97,6 +106,11 @@ class MailerLiteService
     private function wrapResult(Response $response, $multiple = false)
     {
         $json = $response->json();
+
+        if (null === $json) {
+            return;
+        }
+
         $json = $multiple ? $json : [$json];
 
         $subscribers = array_map(function ($item) {

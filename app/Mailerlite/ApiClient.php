@@ -49,7 +49,7 @@ class ApiClient
         ]);
     }
 
-    public function deleteSubscriber($id_or_email, $name, $country)
+    public function deleteSubscriber($id_or_email)
     {
         return $this->request()->delete("/api/v2/subscribers/{$id_or_email}");
     }
