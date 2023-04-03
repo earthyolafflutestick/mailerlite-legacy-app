@@ -26,7 +26,22 @@ class MailerLiteClientTest extends TestCase
         $this->client->getSubscribers(10, 20);
 
         Http::assertSent(function (Request $request) {
-            return Str::startsWith($request->url(), 'https://api.mailerlite.com') &&
+            return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers') &&
+                data_get($request->data(), 'offset') === 10 &&
+                data_get($request->data(), 'limit') === 20 &&
+                $request->method() === 'GET';
+        });
+    }
+
+    public function test_search_subscribers_parameters()
+    {
+        Http::fake();
+
+        $this->client->searchSubscribers('test@test.com', 10, 20);
+
+        Http::assertSent(function (Request $request) {
+            return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers/search') &&
+                data_get($request->data(), 'query') === 'test@test.com' &&
                 data_get($request->data(), 'offset') === 10 &&
                 data_get($request->data(), 'limit') === 20 &&
                 $request->method() === 'GET';

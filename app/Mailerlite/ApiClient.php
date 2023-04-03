@@ -23,6 +23,15 @@ class ApiClient
         ]);
     }
 
+    public function searchSubscribers($query, $offset, $limit)
+    {
+        return $this->request()->get('/api/v2/subscribers/search', [
+            'query' => $query,
+            'offset' => $offset,
+            'limit' => $limit,
+        ]);
+    }
+
     public function request()
     {
         return Http::baseUrl(self::BASE_URL)
