@@ -47,4 +47,19 @@ class MailerLiteClientTest extends TestCase
                 $request->method() === 'GET';
         });
     }
+
+    public function test_create_subscriber_parameters()
+    {
+        Http::fake();
+
+        $this->client->createSubscriber('test@test.com', 'Test', 'Nowhere');
+
+        Http::assertSent(function (Request $request) {
+            return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers') &&
+                data_get($request->data(), 'email') === 'test@test.com' &&
+                data_get($request->data(), 'name') === 'Test' &&
+                data_get($request->data(), 'country') === 'Nowhere' &&
+                $request->method() === 'POST';
+        });
+    }
 }

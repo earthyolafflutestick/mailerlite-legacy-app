@@ -32,6 +32,15 @@ class ApiClient
         ]);
     }
 
+    public function createSubscriber($email, $name, $country)
+    {
+        return $this->request()->post('/api/v2/subscribers', [
+            'email' => $email,
+            'name' => $name,
+            'country' => $country,
+        ]);
+    }
+
     public function request()
     {
         return Http::baseUrl(self::BASE_URL)
