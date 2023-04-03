@@ -89,4 +89,35 @@ class MailerLiteServiceTest extends TestCase
         $this->assertEquals($response[0]->subscribeDate, '03-04-2023');
         $this->assertEquals($response[0]->subscribeTime, '22:16:37');
     }
+
+    public function test_search_subscribers_returns_array_of_subscribers()
+    {
+        Http::fake(function ($request) {
+            return Http::response([
+                [
+                    'id' => 1,
+                    'email' => 'test@test.com',
+                    'name' => 'Test',
+                    'fields' => [
+                        [
+                            'key' => 'country',
+                            'value' => 'Nowhere'
+                        ],
+                    ],
+                    'date_subscribe' => '2023-04-03 22:16:37',
+                ]
+            ], 200);
+        });
+
+        $response = $this->mailerLite->searchSubscribers('test@test.com');
+
+        $this->assertIsArray($response);
+        $this->assertInstanceOf(Subscriber::class, $response[0]);
+        $this->assertEquals($response[0]->id, 1);
+        $this->assertEquals($response[0]->email, 'test@test.com');
+        $this->assertEquals($response[0]->name, 'Test');
+        $this->assertEquals($response[0]->country, 'Nowhere');
+        $this->assertEquals($response[0]->subscribeDate, '03-04-2023');
+        $this->assertEquals($response[0]->subscribeTime, '22:16:37');
+    }
 }

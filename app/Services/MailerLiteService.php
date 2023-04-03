@@ -27,6 +27,15 @@ class MailerLiteService
         return $this->makeRequest($closure, true);
     }
 
+    public function searchSubscribers($query, $offset = 0, $limit = 10)
+    {
+        $closure = function () use ($query, $offset, $limit) {
+            return $this->client->searchSubscribers($query, $offset, $limit);
+        };
+
+        return $this->makeRequest($closure, true);
+    }
+
     private function makeRequest(\Closure $closure, $multiple = false)
     {
         try {
