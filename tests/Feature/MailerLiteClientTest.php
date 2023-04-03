@@ -76,4 +76,16 @@ class MailerLiteClientTest extends TestCase
                 $request->method() === 'PUT';
         });
     }
+
+    public function test_delete_subscriber_parameters()
+    {
+        Http::fake();
+
+        $this->client->deleteSubscriber(1, 'Test', 'Nowhere');
+
+        Http::assertSent(function (Request $request) {
+            return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers/1') &&
+                $request->method() === 'DELETE';
+        });
+    }
 }
