@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ApiKeyController;
+use App\Http\Controllers\SubscriberController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +16,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
+})->middleware('apikey.present');
+
+Route::prefix('apikeys')->name('apikeys.')->group(function () {
+    Route::get('/create', [ApiKeyController::class, 'create'])->name('create');
+    Route::post('/store', [ApiKeyController::class, 'store'])->name('store');
 });
+
+Route::get('subscribers/search', [SubscriberController::class, 'search'])
+    ->middleware('apikey.present')
+    ->name('subscribers.search');
+Route::resource('subscribers', SubscriberController::class)->middleware('apikey.present');
