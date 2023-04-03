@@ -7,6 +7,13 @@ use Illuminate\Support\Facades\DB;
 
 class ApiKeyService
 {
+    public const TABLE = 'api_keys';
+
+    public static function reset()
+    {
+        DB::table(self::TABLE)->truncate();
+    }
+
     public static function set($value)
     {
         self::reset();
