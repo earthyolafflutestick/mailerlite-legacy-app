@@ -45,6 +45,15 @@ class MailerLiteService
         return $this->makeRequest($closure, false);
     }
 
+    public function updateSubscriber($id_or_email, $name = '', $country = '')
+    {
+        $closure = function () use ($id_or_email, $name, $country) {
+            return $this->client->updateSubscriber($id_or_email, $name, $country);
+        };
+
+        return $this->makeRequest($closure, false);
+    }
+
     private function makeRequest(\Closure $closure, $multiple = false)
     {
         try {
