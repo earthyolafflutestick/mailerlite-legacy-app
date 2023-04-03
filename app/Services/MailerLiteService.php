@@ -20,14 +20,23 @@ class MailerLiteService
 
     public function getSubscribers($offset = 0, $limit = 10)
     {
+        $closure = function () use ($offset, $limit) {
+            return $this->client->getSubscribers($offset, $limit);
+        };
+
+        return $this->makeRequest($closure, true);
+    }
+
+    private function makeRequest(\Closure $closure, $multiple = false)
+    {
         try {
-            $response = $this->client->getSubscribers($offset, $limit);
+            $response = $closure();
 
             if ($response->failed()) {
                 return $this->wrapError($response);
             }
 
-            return $this->wrapResult($response, true);
+            return $this->wrapResult($response, $multiple);
         } catch (\Exception $e) {
             return $this->wrapException();
         }
@@ -65,7 +74,7 @@ class MailerLiteService
 
         $subscribers = array_map(function ($item) {
             $subscribe_datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $item['date_subscribe']);
-            $subscribe_date = $subscribe_datetime->format('Y-m-d');
+            $subscribe_date = $subscribe_datetime->format('d-m-Y');
             $subscribe_time = $subscribe_datetime->format('H:i:s');
             $country = Arr::first($item['fields'], fn($f) => $f['key'] === 'country')['value'];
 
