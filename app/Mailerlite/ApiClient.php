@@ -41,6 +41,14 @@ class ApiClient
         ]);
     }
 
+    public function updateSubscriber($id_or_email, $name, $country)
+    {
+        return $this->request()->put("/api/v2/subscribers/{$id_or_email}", [
+            'name' => $name,
+            'country' => $country,
+        ]);
+    }
+
     public function request()
     {
         return Http::baseUrl(self::BASE_URL)

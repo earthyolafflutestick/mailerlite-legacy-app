@@ -62,4 +62,18 @@ class MailerLiteClientTest extends TestCase
                 $request->method() === 'POST';
         });
     }
+
+    public function test_update_subscriber_parameters()
+    {
+        Http::fake();
+
+        $this->client->updateSubscriber(1, 'Test', 'Nowhere');
+
+        Http::assertSent(function (Request $request) {
+            return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers/1') &&
+                data_get($request->data(), 'name') === 'Test' &&
+                data_get($request->data(), 'country') === 'Nowhere' &&
+                $request->method() === 'PUT';
+        });
+    }
 }
