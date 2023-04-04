@@ -15,6 +15,11 @@ class ApiClient
         $this->apiKey = $apiKey;
     }
 
+    public function setApiKey($apiKey)
+    {
+        $this->apiKey = $apiKey;
+    }
+
     public function getSubscribers($offset, $limit)
     {
         return $this->request()->get('/api/v2/subscribers', [

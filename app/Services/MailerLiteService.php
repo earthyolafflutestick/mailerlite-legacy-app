@@ -18,6 +18,11 @@ class MailerLiteService
         $this->client = $client;
     }
 
+    public function getClient()
+    {
+        return $this->client;
+    }
+
     public function getSubscribers($offset = 0, $limit = 10)
     {
         $closure = function () use ($offset, $limit) {
