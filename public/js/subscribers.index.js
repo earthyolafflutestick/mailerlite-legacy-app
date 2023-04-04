@@ -2065,7 +2065,7 @@ var DataTables = __webpack_require__(/*! datatables.net-bm */ "./node_modules/da
 var axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 (function (settings) {
   $(function () {
-    $('#subscribers').DataTable({
+    var table = $('#subscribers').DataTable({
       serverSide: true,
       ajax: {
         url: settings.listUrl,
@@ -2093,16 +2093,18 @@ var axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
         $('#subscribers').fadeIn();
       }
     });
-  });
-  $(document).on('click', '[data-delete-subscriber]', function (e) {
-    e.preventDefault();
-    var id = $(e.target).attr('data-delete-subscriber');
-    axios["delete"]("".concat(_settings.destroyUrl, "/").concat(id)).then(function (response) {
-      $('.notification').remove();
-      $('#main').prepend(response.data.notice);
-    })["catch"](function (error) {
-      $('.notification').remove();
-      $('#main').prepend(response.data.notice);
+    $(document).on('click', '[data-delete-subscriber]', function (e) {
+      e.preventDefault();
+      var id = $(e.target).attr('data-delete-subscriber');
+      axios["delete"]("".concat(_settings.destroyUrl, "/").concat(id)).then(function (response) {
+        table.ajax.reload(function () {
+          $('.notification').remove();
+          $('#main').prepend(response.data.notice);
+        });
+      })["catch"](function (error) {
+        $('.notification').remove();
+        $('#main').prepend(response.data.notice);
+      });
     });
   });
 })(_settings);

@@ -21,7 +21,7 @@
         @yield('content', '')
     </div>
 </section>
-
+<footer class="footer"></footer>
 @yield('scripts', '')
 </body>
 </html>

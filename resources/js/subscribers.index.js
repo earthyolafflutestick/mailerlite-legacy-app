@@ -5,7 +5,7 @@ const axios = require('axios');
 (function (settings) {
 
     $(function () {
-        $('#subscribers').DataTable({
+        let table = $('#subscribers').DataTable({
             serverSide: true,
             ajax: {
                 url: settings.listUrl,
@@ -34,23 +34,24 @@ const axios = require('axios');
                 $('#subscribers').fadeIn();
             }
         });
+
+        $(document).on('click', '[data-delete-subscriber]', e => {
+            e.preventDefault();
+
+            const id = $(e.target).attr('data-delete-subscriber');
+
+            axios.delete(`${_settings.destroyUrl}/${id}`)
+                .then((response) => {
+                    table.ajax.reload(() => {
+                        $('.notification').remove();
+                        $('#main').prepend(response.data.notice);
+                    });
+                })
+                .catch((error) => {
+                    $('.notification').remove();
+                    $('#main').prepend(response.data.notice);
+                });
+        });
     });
-
-    $(document).on('click', '[data-delete-subscriber]', e => {
-        e.preventDefault();
-
-        const id = $(e.target).attr('data-delete-subscriber');
-
-        axios.delete(`${_settings.destroyUrl}/${id}`)
-            .then((response) => {
-                $('.notification').remove();
-                $('#main').prepend(response.data.notice);
-            })
-            .catch((error) => {
-                $('.notification').remove();
-                $('#main').prepend(response.data.notice);
-            });
-    });
-
 
 })(_settings);
