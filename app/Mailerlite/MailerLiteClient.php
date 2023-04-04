@@ -4,7 +4,7 @@ namespace App\Mailerlite;
 
 use Illuminate\Support\Facades\Http;
 
-class ApiClient
+class MailerLiteClient
 {
     public const BASE_URL = 'https://api.mailerlite.com';
 
@@ -25,35 +25,35 @@ class ApiClient
         return $this->request()->get('/api/v2/subscribers');
     }
 
-    public function searchSubscribers($query, $offset, $limit)
+    public function getSubscriber($id)
     {
-        return $this->request()->get('/api/v2/subscribers/search', [
-            'query' => $query,
-            'offset' => $offset,
-            'limit' => $limit,
-        ]);
+        return $this->request()->get("/api/v2/subscribers/{$id}");
     }
 
     public function createSubscriber($email, $name, $country)
     {
-        return $this->request()->post('/api/v2/subscribers', [
+        return $this->request()->withBody(json_encode([
             'email' => $email,
             'name' => $name,
-            'country' => $country,
-        ]);
+            'fields' => [
+                'country' => $country,
+            ]
+        ]), 'application/json')->post('/api/v2/subscribers');
     }
 
-    public function updateSubscriber($id_or_email, $name, $country)
+    public function updateSubscriber($id, $name, $country)
     {
-        return $this->request()->put("/api/v2/subscribers/{$id_or_email}", [
+        return $this->request()->withBody(json_encode([
             'name' => $name,
-            'country' => $country,
-        ]);
+            'fields' => [
+                'country' => $country,
+            ]
+        ]), 'application/json')->put("/api/v2/subscribers/{$id}");
     }
 
-    public function deleteSubscriber($id_or_email)
+    public function deleteSubscriber($id)
     {
-        return $this->request()->delete("/api/v2/subscribers/{$id_or_email}");
+        return $this->request()->delete("/api/v2/subscribers/{$id}");
     }
 
     public function getStats()

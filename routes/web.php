@@ -24,7 +24,4 @@ Route::prefix('apikeys')->name('apikeys.')->group(function () {
     Route::post('/store', [ApiKeyController::class, 'store'])->name('store');
 });
 
-Route::get('subscribers/search', [SubscriberController::class, 'search'])
-    ->middleware('apikey.present')
-    ->name('subscribers.search');
-Route::resource('subscribers', SubscriberController::class)->middleware('apikey.present');
+Route::resource('subscribers', SubscriberController::class)->middleware('apikey.present')->except(['show']);

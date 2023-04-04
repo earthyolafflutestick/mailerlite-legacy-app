@@ -1,2 +1,6 @@
 @import "bulma/css/bulma.min.css";
 @import "datatables.net-bm/css/dataTables.bulma.min.css";
+
+.button.is-small.is-danger {
+    height: auto;
+}

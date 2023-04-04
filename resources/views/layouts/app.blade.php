@@ -15,7 +15,9 @@
     </div>
 </section>
 <section class="section">
-    <div class="container">
+    <div class="container" id="main">
+        @include('partials.error')
+        @include('partials.success', ['message' => session('success', false)])
         @yield('content', '')
     </div>
 </section>

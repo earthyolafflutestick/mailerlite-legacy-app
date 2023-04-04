@@ -13,5 +13,8 @@ return [
         '401' => 'The request requires user authentication.',
         '404' => 'The server has not found anything matching the Request-URI. No indication is given of whether the condition is temporary or permanent.',
         '500' => 'The server encountered an unexpected condition which prevented it from fulfilling the request.',
+        'subscriber_created' => 'Subscriber created successfully.',
+        'subscriber_updated' => 'Subscriber updated successfully.',
+        'subscriber_deleted' => 'Subscriber deleted successfully.',
     ]
 ];

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Mailerlite\ApiClient;
+use App\Mailerlite\MailerLiteClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Client\Request;
@@ -16,7 +16,7 @@ class MailerLiteClientTest extends TestCase
     {
         parent::setUp();
 
-        $this->client = new ApiClient('');
+        $this->client = new MailerLiteClient('');
     }
 
     public function test_get_subscribers_parameters()
@@ -31,17 +31,14 @@ class MailerLiteClientTest extends TestCase
         });
     }
 
-    public function test_search_subscribers_parameters()
+    public function test_get_subscriber_parameters()
     {
         Http::fake();
 
-        $this->client->searchSubscribers('test@test.com', 10, 20);
+        $this->client->getSubscriber(1);
 
         Http::assertSent(function (Request $request) {
-            return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers/search') &&
-                data_get($request->data(), 'query') === 'test@test.com' &&
-                data_get($request->data(), 'offset') === 10 &&
-                data_get($request->data(), 'limit') === 20 &&
+            return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers/1') &&
                 $request->method() === 'GET';
         });
     }
@@ -53,10 +50,12 @@ class MailerLiteClientTest extends TestCase
         $this->client->createSubscriber('test@test.com', 'Test', 'Nowhere');
 
         Http::assertSent(function (Request $request) {
+            $body = json_decode($request->body(), true);
+
             return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers') &&
-                data_get($request->data(), 'email') === 'test@test.com' &&
-                data_get($request->data(), 'name') === 'Test' &&
-                data_get($request->data(), 'country') === 'Nowhere' &&
+                data_get($body, 'email') === 'test@test.com' &&
+                data_get($body, 'name') === 'Test' &&
+                data_get($body, 'fields.country') === 'Nowhere' &&
                 $request->method() === 'POST';
         });
     }
@@ -68,9 +67,11 @@ class MailerLiteClientTest extends TestCase
         $this->client->updateSubscriber(1, 'Test', 'Nowhere');
 
         Http::assertSent(function (Request $request) {
+            $body = json_decode($request->body(), true);
+
             return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers/1') &&
-                data_get($request->data(), 'name') === 'Test' &&
-                data_get($request->data(), 'country') === 'Nowhere' &&
+                data_get($body, 'name') === 'Test' &&
+                data_get($body, 'fields.country') === 'Nowhere' &&
                 $request->method() === 'PUT';
         });
     }

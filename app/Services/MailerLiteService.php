@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Mailerlite\ApiClient;
+use App\Mailerlite\MailerLiteClient;
 use App\Mailerlite\Error;
 use App\Mailerlite\ErrorDetails;
 use App\Mailerlite\Result;
@@ -16,7 +16,7 @@ class MailerLiteService
 {
     private $client;
 
-    public function __construct(ApiClient $client)
+    public function __construct(MailerLiteClient $client)
     {
         $this->client = $client;
     }
@@ -48,6 +48,25 @@ class MailerLiteService
                 array_slice($records, $offset);
 
             return new Result($count, $records);
+        } catch (\Exception $e) {
+            return $this->wrapException();
+        }
+    }
+
+    public function getSubscriber($id)
+    {
+        try {
+            $response = $this->client->getSubscriber($id);
+
+            if ($response->failed()) {
+                return $this->wrapError($response);
+            }
+
+            $records = $response->json();
+            $records = $records ? [$records] : [];
+            $records = $this->wrapRecords($records);
+
+            return new Result(1, $records);
         } catch (\Exception $e) {
             return $this->wrapException();
         }
@@ -118,16 +137,17 @@ class MailerLiteService
     private function wrapError(Response $response)
     {
         $json = $response->json();
+
         $code = Arr::get($json, 'error.code', 500);
         $message = Arr::get($json, 'error.message', __('mailerlite.messages.500'));
-        $error = new Error($message, null, $code);
+        $error = new Error($message, new ErrorDetails($message, [$message]), $code);
 
-        if (Arr::has($json, 'error.error_details')) {
-            $message = Arr::get($json, 'error.error_details.message', '');
-            $errors = Arr::get($json, 'error.error_details.errors', []);
-            $errorDetails = new ErrorDetails($message, $errors);
+        if (Arr::has($json, 'error_details')) {
+            $message = Arr::get($json, 'error_details.message', '');
+            $errors = Arr::get($json, 'error_details.errors', []);
 
-            $error->details = $errorDetails;
+            $error->details->message = $message;
+            $error->details->errors = $errors;
         }
 
         return $error;

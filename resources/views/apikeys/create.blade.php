@@ -3,15 +3,6 @@
 @section('title', 'API key')
 
 @section('content')
-    @if ($errors->any())
-        <div class="notification is-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
     <form method="post" action="{{ route('apikeys.store') }}">
         @csrf
         <div class="field">

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Mailerlite\ApiClient;
+use App\Mailerlite\MailerLiteClient;
 use App\Services\ApiKeyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -21,7 +21,7 @@ class ResponsesTest extends TestCase
     public function test_subscribers_index_displays_api_errors()
     {
         Http::fake([
-            ApiClient::BASE_URL . '/*' => Http::response([
+            MailerLiteClient::BASE_URL . '/*' => Http::response([
                 "error" => [
                     'code' => 123,
                     'message' => 'API error',

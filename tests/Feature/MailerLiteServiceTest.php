@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Mailerlite\ApiClient;
+use App\Mailerlite\MailerLiteClient;
 use App\Mailerlite\Error;
 use App\Mailerlite\ErrorDetails;
 use App\Mailerlite\Result;
@@ -20,7 +20,7 @@ class MailerLiteServiceTest extends TestCase
     {
         parent::setUp();
 
-        $apiClient = new ApiClient('');
+        $apiClient = new MailerLiteClient('');
         $this->mailerLite = new MailerLiteService($apiClient);
     }
 
@@ -44,13 +44,13 @@ class MailerLiteServiceTest extends TestCase
                 "error" => [
                     'code' => 123,
                     'message' => 'Test',
-                    'error_details' => [
-                        "message" => 'Another test',
-                        'errors' => [
-                            'email' => 'Yet another test'
-                        ],
+                ],
+                'error_details' => [
+                    "message" => 'Another test',
+                    'errors' => [
+                        'email' => 'Yet another test'
                     ],
-                ]
+                ],
             ], 400);
         });
 
@@ -189,6 +189,32 @@ class MailerLiteServiceTest extends TestCase
         $response = $this->mailerLite->getSubscribers(null, 1);
 
         $this->assertEquals($response->records[1]->id, 3);
+    }
+
+    public function test_get_subscriber_returns_result()
+    {
+        Http::fake(function ($request) {
+            return Http::response([
+                [
+                    'id' => 1,
+                    'email' => 'test@test.com',
+                    'name' => 'Test',
+                    'fields' => [
+                        [
+                            'key' => 'country',
+                            'value' => 'Nowhere'
+                        ],
+                    ],
+                    'date_subscribe' => '2023-04-03 22:16:37',
+                ]
+            ], 200);
+        });
+
+        $response = $this->mailerLite->getSubscribers();
+
+        $this->assertInstanceOf(Result::class, $response);
+        $this->assertEquals($response->count, 1);
+        $this->assertInstanceOf(Record::class, $response->records[0]);
     }
 
     public function test_create_subscriber_returns_result()

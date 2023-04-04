@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mailerlite\Error;
 use App\Services\MailerLiteService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class SubscriberController extends Controller
 {
@@ -56,29 +57,33 @@ class SubscriberController extends Controller
      */
     public function create()
     {
-        //
+        return view('subscribers.create');
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request, MailerLiteService $mailerLite)
     {
-        //
-    }
+        $result = $mailerLite->createSubscriber(
+            $request->input('email'),
+            $request->input('name'),
+            $request->input('country')
+        );
 
-    /**
-     * Display the specified resource.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
+        if ($result instanceof Error) {
+            return redirect()
+                ->route('subscribers.create')
+                ->withInput($request->only(['email', 'name', 'country']))
+                ->withErrors(Arr::flatten($result->details->errors));
+        }
+
+        session()->flash('success', __('mailerlite.messages.subscriber_created'));
+
+        return redirect()->route('subscribers.index');
     }
 
     /**
@@ -87,9 +92,17 @@ class SubscriberController extends Controller
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Request $request, MailerLiteService $mailerLite, $id)
     {
-        //
+        $result = $mailerLite->getSubscriber($id);
+
+        if ($result instanceof Error) {
+            abort(404);
+        }
+
+        return view('subscribers.edit', [
+            'subscriber' => $result->records[0],
+        ]);
     }
 
     /**
@@ -99,9 +112,23 @@ class SubscriberController extends Controller
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, MailerLiteService $mailerLite, $id)
     {
-        //
+        $result = $mailerLite->updateSubscriber(
+            $id,
+            $request->input('name'),
+            $request->input('country')
+        );
+
+        if ($result instanceof Error) {
+            return redirect()
+                ->route('subscribers.edit', $id)
+                ->withErrors(Arr::flatten($result->details->errors));
+        }
+
+        session()->flash('success', __('mailerlite.messages.subscriber_updated'));
+
+        return redirect()->route('subscribers.index');
     }
 
     /**
@@ -110,8 +137,16 @@ class SubscriberController extends Controller
      * @param int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(MailerLiteService $mailerLite, $id)
     {
-        //
+        $result = $mailerLite->deleteSubscriber($id);
+        $response = [
+            'code' => $result instanceof Error ? $result->code : 201,
+            'notice' => $result instanceof Error ?
+                view('partials.error')->withErrors(['error' => $result->message])->render() :
+                view('partials.success', ['message' => __('mailerlite.messages.subscriber_deleted')])->render()
+        ];
+
+        return response()->json($response);
     }
 }

@@ -7,7 +7,7 @@ class ErrorDetails
     public $message;
     public $errors;
 
-    public function __construct($message, $errors = [])
+    public function __construct($message = '', $errors = [])
     {
         $this->message = $message;
         $this->errors = $errors;
