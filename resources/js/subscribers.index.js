@@ -27,6 +27,7 @@ const axios = require('axios');
                     },
                 },
             ],
+            ordering: false,
             deferLoading: settings.deferLoading,
             pagingType: 'simple',
 

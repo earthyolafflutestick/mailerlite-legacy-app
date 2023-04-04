@@ -2087,6 +2087,7 @@ var axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
           return '<a class="button is-small is-danger" data-delete-subscriber="' + id + '">Remove</a>';
         }
       }],
+      ordering: false,
       deferLoading: settings.deferLoading,
       pagingType: 'simple',
       initComplete: function initComplete() {
