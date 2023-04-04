@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mailerlite\Error;
+use App\Services\MailerLiteService;
 use Illuminate\Http\Request;
 
 class SubscriberController extends Controller
@@ -11,9 +13,40 @@ class SubscriberController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request, MailerLiteService $mailerLite)
     {
-        //
+        $draw = intval($request->input('draw', 1));
+        $result = $mailerLite->getSubscribers(
+            $request->input('search.value'),
+            $request->input('start', 0),
+            $request->input('length', 10)
+        );
+
+        if ($request->wantsJson()) {
+            $payload = [
+                'draw' => $draw,
+                'recordsTotal' => $result->count,
+                'recordsFiltered' => $result->count,
+                'subscribers' => $result->records,
+            ];
+
+            if ($result instanceof Error) {
+                $payload['error'] = $result->message;
+            }
+
+            return $payload;
+        }
+
+        $data = [
+            'deferLoading' => $result->count,
+            'subscribers' => $result->records,
+        ];
+
+        if ($result instanceof Error) {
+            $data['error'] = $result->message;
+        }
+
+        return view('subscribers.index', $data);
     }
 
     /**
@@ -29,7 +62,7 @@ class SubscriberController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -40,7 +73,7 @@ class SubscriberController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -51,7 +84,7 @@ class SubscriberController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -62,8 +95,8 @@ class SubscriberController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -74,7 +107,7 @@ class SubscriberController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)

@@ -2,7 +2,7 @@
 
 namespace App\Mailerlite;
 
-class Subscriber
+class Record
 {
     public $id;
     public $email;

@@ -20,7 +20,6 @@
     </div>
 </section>
 
-
 @yield('scripts', '')
 </body>
 </html>

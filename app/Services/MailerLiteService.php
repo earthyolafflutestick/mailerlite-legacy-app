@@ -5,10 +5,12 @@ namespace App\Services;
 use App\Mailerlite\ApiClient;
 use App\Mailerlite\Error;
 use App\Mailerlite\ErrorDetails;
+use App\Mailerlite\Result;
 use App\Mailerlite\Stats;
-use App\Mailerlite\Subscriber;
+use App\Mailerlite\Record;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class MailerLiteService
 {
@@ -24,76 +26,83 @@ class MailerLiteService
         return $this->client;
     }
 
-    public function getSubscribers()
-    {
-        $closure = function () {
-            return $this->client->getSubscribers();
-        };
-
-        return $this->makeRequest($closure, true);
-    }
-
-    public function searchSubscribers($query, $offset = 0, $limit = 10)
-    {
-        $closure = function () use ($query, $offset, $limit) {
-            return $this->client->searchSubscribers($query, $offset, $limit);
-        };
-
-        return $this->makeRequest($closure, true);
-    }
-
-    public function createSubscriber($email, $name = '', $country = '')
-    {
-        $closure = function () use ($email, $name, $country) {
-            return $this->client->createSubscriber($email, $name, $country);
-        };
-
-        return $this->makeRequest($closure, false);
-    }
-
-    public function updateSubscriber($id_or_email, $name = '', $country = '')
-    {
-        $closure = function () use ($id_or_email, $name, $country) {
-            return $this->client->updateSubscriber($id_or_email, $name, $country);
-        };
-
-        return $this->makeRequest($closure, false);
-    }
-
-    public function deleteSubscriber($id_or_email)
-    {
-        $closure = function () use ($id_or_email) {
-            return $this->client->deleteSubscriber($id_or_email);
-        };
-
-        return $this->makeRequest($closure, false);
-    }
-
-    public function getStats()
+    public function getSubscribers($query = null, $offset = 0, $limit = null)
     {
         try {
-            $response = $this->client->getStats();
+            $response = $this->client->getSubscribers();
 
             if ($response->failed()) {
                 return $this->wrapError($response);
             }
 
-            return $this->wrapStats($response);
+            $records = $response->json() ?? [];
+            $records = $this->wrapRecords($records);
+
+            if ($query) {
+                $records = Arr::where($records, fn($record) => Str::contains($record->email, $query));
+            }
+
+            $count = count($records);
+            $records = $limit !== null ?
+                array_slice($records, $offset, $limit) :
+                array_slice($records, $offset);
+
+            return new Result($count, $records);
         } catch (\Exception $e) {
             return $this->wrapException();
         }
     }
 
-    private function makeRequest(\Closure $closure, $multiple = false)
+    public function createSubscriber($email, $name = '', $country = '')
     {
         try {
-            $response = $closure();
+            $response = $this->client->createSubscriber($email, $name, $country);
 
             if ($response->failed()) {
                 return $this->wrapError($response);
             }
 
-            return $this->wrapResult($response, $multiple);
+            $records = $response->json();
+            $records = $records ? [$records] : [];
+            $records = $this->wrapRecords($records);
+            $count = count($records);
+
+            return new Result($count, $records);
+        } catch (\Exception $e) {
+            return $this->wrapException();
+        }
+    }
+
+    public function updateSubscriber($id_or_email, $name = '', $country = '')
+    {
+        try {
+            $response = $this->client->updateSubscriber($id_or_email, $name, $country);
+
+            if ($response->failed()) {
+                return $this->wrapError($response);
+            }
+
+            $records = $response->json();
+            $records = $records ? [$records] : [];
+            $records = $this->wrapRecords($records);
+            $count = count($records);
+
+            return new Result($count, $records);
+        } catch (\Exception $e) {
+            return $this->wrapException();
+        }
+    }
+
+    public function deleteSubscriber($id_or_email)
+    {
+        try {
+            $response = $this->client->deleteSubscriber($id_or_email);
+
+            if ($response->failed()) {
+                return $this->wrapError($response);
+            }
+
+            return new Result(0, []);
         } catch (\Exception $e) {
             return $this->wrapException();
         }
@@ -108,14 +117,14 @@ class MailerLiteService
 
     private function wrapError(Response $response)
     {
-        $code = $response->status();
         $json = $response->json();
-        $message = Arr::get($json, 'message', __('mailerlite.messages.500'));
+        $code = Arr::get($json, 'error.code', 500);
+        $message = Arr::get($json, 'error.message', __('mailerlite.messages.500'));
         $error = new Error($message, null, $code);
 
-        if (Arr::has($json, 'error_details')) {
-            $message = Arr::get($json, 'error_details.message', '');
-            $errors = Arr::get($json, 'error_details.errors', []);
+        if (Arr::has($json, 'error.error_details')) {
+            $message = Arr::get($json, 'error.error_details.message', '');
+            $errors = Arr::get($json, 'error.error_details.errors', []);
             $errorDetails = new ErrorDetails($message, $errors);
 
             $error->details = $errorDetails;
@@ -124,46 +133,24 @@ class MailerLiteService
         return $error;
     }
 
-    private function wrapResult(Response $response, $multiple = false)
+    private function wrapRecords($records)
     {
-        $json = $response->json();
-
-        if (null === $json) {
-            return;
-        }
-
-        $json = $multiple ? $json : [$json];
-
-        $subscribers = array_map(function ($item) {
-            $subscribe_datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $item['date_subscribe']);
+        $records = array_map(function ($record) {
+            $subscribe_datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $record['date_subscribe']);
             $subscribe_date = $subscribe_datetime->format('d-m-Y');
             $subscribe_time = $subscribe_datetime->format('H:i:s');
-            $country = Arr::first($item['fields'], fn($f) => $f['key'] === 'country')['value'];
+            $country = Arr::first($record['fields'], fn($f) => $f['key'] === 'country')['value'];
 
-            return new Subscriber(
-                $item['id'],
-                $item['email'],
-                $item['name'],
+            return new Record(
+                $record['id'],
+                $record['email'],
+                $record['name'],
                 $country,
                 $subscribe_date,
                 $subscribe_time
             );
-        }, $json);
+        }, $records);
 
-        if (!$multiple && count($subscribers) > 0) {
-            return $subscribers[0];
-        }
-
-        return $subscribers;
-    }
-
-    private function wrapStats(Response $response)
-    {
-        $json = $response->json();
-        $subscribed = Arr::get($json, 'subscribed', 0);
-        $unsubscribed = Arr::get($json, 'unsubscribed', 0);
-        $stats = new Stats($subscribed + $unsubscribed);
-
-        return $stats;
+        return $records;
     }
 }
