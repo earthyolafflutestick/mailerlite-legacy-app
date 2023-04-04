@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home');
-})->middleware('apikey.present');
+})->middleware('apikey.present')->name('home');
 
 Route::prefix('apikeys')->name('apikeys.')->group(function () {
     Route::get('/create', [ApiKeyController::class, 'create'])->name('create');
