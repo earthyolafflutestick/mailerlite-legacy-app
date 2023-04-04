@@ -24,10 +24,10 @@ class MailerLiteService
         return $this->client;
     }
 
-    public function getSubscribers($offset = 0, $limit = 10)
+    public function getSubscribers()
     {
-        $closure = function () use ($offset, $limit) {
-            return $this->client->getSubscribers($offset, $limit);
+        $closure = function () {
+            return $this->client->getSubscribers();
         };
 
         return $this->makeRequest($closure, true);

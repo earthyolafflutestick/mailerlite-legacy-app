@@ -27,8 +27,6 @@ class MailerLiteClientTest extends TestCase
 
         Http::assertSent(function (Request $request) {
             return Str::startsWith($request->url(), 'https://api.mailerlite.com/api/v2/subscribers') &&
-                data_get($request->data(), 'offset') === 10 &&
-                data_get($request->data(), 'limit') === 20 &&
                 $request->method() === 'GET';
         });
     }

@@ -20,12 +20,9 @@ class ApiClient
         $this->apiKey = $apiKey;
     }
 
-    public function getSubscribers($offset, $limit)
+    public function getSubscribers()
     {
-        return $this->request()->get('/api/v2/subscribers', [
-            'offset' => $offset,
-            'limit' => $limit,
-        ]);
+        return $this->request()->get('/api/v2/subscribers');
     }
 
     public function searchSubscribers($query, $offset, $limit)
