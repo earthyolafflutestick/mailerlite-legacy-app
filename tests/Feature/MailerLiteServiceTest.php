@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mailerlite\ApiClient;
 use App\Mailerlite\Error;
 use App\Mailerlite\ErrorDetails;
+use App\Mailerlite\Stats;
 use App\Mailerlite\Subscriber;
 use App\Services\MailerLiteService;
 use Illuminate\Http\Client\ConnectionException;
@@ -186,5 +187,20 @@ class MailerLiteServiceTest extends TestCase
         $response = $this->mailerLite->deleteSubscriber(1);
 
         $this->assertNull($response);
+    }
+
+    public function test_get_stats_returns_stats()
+    {
+        Http::fake(function ($request) {
+            return Http::response([
+                'subscribed' => 42,
+                'unsubscribed' => 24,
+            ], 200);
+        });
+
+        $response = $this->mailerLite->getStats(1);
+
+        $this->assertInstanceOf(Stats::class, $response);
+        $this->assertEquals($response->total, 66);
     }
 }

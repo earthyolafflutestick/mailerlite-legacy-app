@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mailerlite\ApiClient;
 use App\Mailerlite\Error;
 use App\Mailerlite\ErrorDetails;
+use App\Mailerlite\Stats;
 use App\Mailerlite\Subscriber;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
@@ -66,6 +67,21 @@ class MailerLiteService
         };
 
         return $this->makeRequest($closure, false);
+    }
+
+    public function getStats()
+    {
+        try {
+            $response = $this->client->getStats();
+
+            if ($response->failed()) {
+                return $this->wrapError($response);
+            }
+
+            return $this->wrapStats($response);
+        } catch (\Exception $e) {
+            return $this->wrapException();
+        }
     }
 
     private function makeRequest(\Closure $closure, $multiple = false)
@@ -139,5 +155,15 @@ class MailerLiteService
         }
 
         return $subscribers;
+    }
+
+    private function wrapStats(Response $response)
+    {
+        $json = $response->json();
+        $subscribed = Arr::get($json, 'subscribed', 0);
+        $unsubscribed = Arr::get($json, 'unsubscribed', 0);
+        $stats = new Stats($subscribed + $unsubscribed);
+
+        return $stats;
     }
 }

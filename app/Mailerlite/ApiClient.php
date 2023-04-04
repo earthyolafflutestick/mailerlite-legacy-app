@@ -59,6 +59,11 @@ class ApiClient
         return $this->request()->delete("/api/v2/subscribers/{$id_or_email}");
     }
 
+    public function getStats()
+    {
+        return $this->request()->get('/api/v2/stats');
+    }
+
     public function request()
     {
         return Http::baseUrl(self::BASE_URL)
